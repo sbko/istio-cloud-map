@@ -1,4 +1,4 @@
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: istio-cloud-map-service-entry-role
@@ -14,14 +14,7 @@ rules:
   resources: ["services"]
   verbs: ["create"]
 ---
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: istio-cloud-map-service-account
-  labels:
-    app: istio-cloud-map
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: istio-cloud-map-service-entry-rolebinding
@@ -34,3 +27,4 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: istio-cloud-map-service-account
+    namespace: default

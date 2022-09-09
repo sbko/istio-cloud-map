@@ -13,3 +13,4 @@ metadata:
   name: aws-config
 data:
   aws-region: us-east-2 # EDIT ME
+

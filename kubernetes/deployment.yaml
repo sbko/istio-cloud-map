@@ -41,3 +41,10 @@ spec:
             secretKeyRef:
               key: secret-access-key
               name: aws-creds
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: istio-cloud-map-service-account
+  labels:
+    app: istio-cloud-map              

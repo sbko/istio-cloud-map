@@ -5,7 +5,25 @@ This repo contains an operator for syncing Cloud Map data into Istio by pushing 
 ## Deploying to your Kubernetes cluster
 
 1. Create an [AWS IAM identity](https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction_access-management.html) with read access to AWS Cloud Map for the operator to use.
-2. Edit the configuration in `kubernetes/aws-config.yaml`. There are two pieces:
+2. Set AWS connectiivity variables:
+```bash
+export AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" # this is an example AWS Secret Access Key - provide yours
+export AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" # this is an example AWS Access Key ID id - provide yours
+export AWS_REGION="us-east-2" # this is an example AWS Region - provide yours
+```
+3. Use the following commands:
+```bash
+kubectl -n default create secret generic aws-creds \
+--from-literal=access-key-id="$AWS_ACCESS_KEY_ID" \
+--from-literal=secret-access-key="$AWS_SECRET_ACCESS_KEY"
+
+kubectl -n default create configmap aws-config \
+--from-literal=aws-region="$AWS_REGION"
+```
+**OR**
+
+Edit the configuration in `kubernetes/aws-config.yaml`. There are two pieces:
+
     - A Kubernetes secret with the Access Key ID and Secret Access Key of the identity you just created in the namespace you want to deploy the Istio Cloud Map Operator:
       ```yaml
       apiVersion: v1
@@ -28,8 +46,14 @@ This repo contains an operator for syncing Cloud Map data into Istio by pushing 
       ```
 4. Deploy the Istio Cloud Map Operator:
     ```bash
-    $ kubectl apply -f kubernetes/rbac.yaml -f kubernetes/aws-config.yaml  -f kubernetes/deployment.yaml
+    kubectl apply -f kubernetes/rbac.yaml 
+    kubectl -n default apply -f kubernetes/deployment.yaml
     ```
+    **AND** (**only if** set secrets in yamls not using direct command in previous step)
+    ```bash
+    kubectl -n default apply -f kubernetes/aws-config.yaml
+    ```
+
 5. Verify that your ServiceEntries have been populated with the information in Cloud Map; there should be one ServiceEntry for every service in Cloud Map:
     ```bash
     $ kubectl get serviceentries
@@ -110,9 +134,9 @@ go build -o istio-cloud-map github.com/tetratelabs/istio-cloud-map/cmd/istio-clo
 To run locally:
 ```bash
 # Be sure to set the ENV vars:
-#   AWS_SECRET_ACCESS_KEY
-#   AWS_ACCESS_KEY_ID
-#   AWS_REGION
+export AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" # this is an example AWS Secret Access Key - provide yours
+export AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" # this is an example AWS Access Key ID id - provide yours
+export AWS_REGION="us-east-2" # this is an example AWS Region - provide yours
 
 make run
 # or
@@ -128,6 +152,11 @@ go build -o istio-cloud-map github.com/tetratelabs/istio-cloud-map/cmd/istio-clo
     --aws-access-key-id "my access key ID" \
     --aws-secret-access-key "my secret access key" \
     --aws-region "us-east-2"
+ ```
+or (if environmental variables for AWS exported - don't specify those):   
+```bash
+./istio-cloud-map serve \
+    --kube-config ~/.kube/config 
 ```
 
 In particular the controller needs its `--kube-config` flag set to talk to the remote API server. If no flag is set, the controller assumes it is deployed into a Kubernetes cluster and attempts to contact the API server directly. Similarly, we need AWS credentials; if the flags aren't set we search the `AWS_SECRET_ACCESS_KEY`, `AWS_ACCESS_KEY_ID`, and `AWS_REGION` environment variables.
