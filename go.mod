@@ -4,6 +4,10 @@ go 1.14
 
 require (
 	github.com/aws/aws-sdk-go v1.30.1
+	github.com/aws/aws-sdk-go-v2 v1.18.1
+	github.com/aws/aws-sdk-go-v2/config v1.18.27
+	github.com/aws/aws-sdk-go-v2/credentials v1.13.26
+	github.com/aws/aws-sdk-go-v2/service/servicediscovery v1.21.7
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.3.3
 	github.com/hashicorp/consul/api v1.6.0

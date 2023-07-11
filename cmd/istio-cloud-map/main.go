@@ -96,7 +96,7 @@ func serve() (serve *cobra.Command) {
 				}
 			}
 
-			watcher, err := getWatcher()
+			watcher, err := getWatcher(ctx)
 			if err != nil {
 				return err
 			}
@@ -148,10 +148,10 @@ func serve() (serve *cobra.Command) {
 	return serve
 }
 
-func getWatcher() (provider.Watcher, error) {
+func getWatcher(ctx context.Context) (provider.Watcher, error) {
 	store := provider.NewStore()
 	log.Info("Initializing Watchers")
-	cmWatcher, awsErr := cloudmap.NewWatcher(store, awsRegion, awsID, awsSecret)
+	cmWatcher, awsErr := cloudmap.NewWatcher(ctx, store, awsRegion, awsID, awsSecret)
 	if awsErr == nil {
 		log.Infof("Cloud Map Watcher initialized in %q", awsRegion)
 	}
