@@ -2,7 +2,25 @@
 
 This repo contains an operator for syncing Cloud Map data into Istio by pushing ServiceEntry CRDs to the Kube API server.
 
-## Deploying to your Kubernetes cluster
+## Deploying to EKS cluster
+
+1. Set region
+```bash
+kubectl -n default create configmap aws-config \
+--from-literal=aws-region="<YOUR REGION>"
+```
+2. Create IAM SA with read access to AWS Cloud Map for the operator to use. [IAM roles for service accounts](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html)
+```bash
+eksctl create iamserviceaccount --name istio-cloud-map-service-account --namespace default --cluster <YOUR CLUSTER> --role-name cloudmap-read \
+--attach-policy-arn arn:aws:iam::aws:policy/AWSCloudMapReadOnlyAccess --approve
+```
+3. Deploy the Istio Cloud Map Operator:
+```bash
+kubectl apply -f kubernetes/rbac.yaml
+kubectl -n default apply -f kubernetes/deployment-v2.yaml
+```
+
+## Deploying to your Kubernetes cluster with Access Key ID and Secret Access Key
 
 1. Create an [AWS IAM identity](https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction_access-management.html) with read access to AWS Cloud Map for the operator to use.
 2. Set AWS connectiivity variables:

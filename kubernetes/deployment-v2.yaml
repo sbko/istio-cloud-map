@@ -31,20 +31,3 @@ spec:
             configMapKeyRef:
               key: aws-region
               name: aws-config
-        - name: AWS_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              key: access-key-id
-              name: aws-creds
-        - name: AWS_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              key: secret-access-key
-              name: aws-creds
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: istio-cloud-map-service-account
-  labels:
-    app: istio-cloud-map              

@@ -3,6 +3,7 @@ package infer
 import (
 	"fmt"
 	"net"
+	"sort"
 	"strings"
 
 	"istio.io/api/networking/v1alpha3"
@@ -75,6 +76,9 @@ func Ports(endpoints []*v1alpha3.ServiceEntry_Endpoint) []*v1alpha3.Port {
 	for _, port := range dedup {
 		res = append(res, port)
 	}
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].Number < res[j].Number
+	})
 	return res
 }
 
