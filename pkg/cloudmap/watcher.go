@@ -98,7 +98,7 @@ func (w *watcher) refreshStore(ctx context.Context) {
 		return
 	}
 	// We want to continue to use existing store on error
-	tempStore := map[string][]*v1alpha3.ServiceEntry_Endpoint{}
+	tempStore := map[string][]*v1alpha3.WorkloadEntry{}
 	for _, ns := range nsResp.Namespaces {
 		hosts, err := w.hostsForNamespace(ctx, &ns)
 		if err != nil {
@@ -114,8 +114,8 @@ func (w *watcher) refreshStore(ctx context.Context) {
 	w.store.Set(tempStore)
 }
 
-func (w *watcher) hostsForNamespace(ctx context.Context, ns *sdTypes.NamespaceSummary) (map[string][]*v1alpha3.ServiceEntry_Endpoint, error) {
-	hosts := map[string][]*v1alpha3.ServiceEntry_Endpoint{}
+func (w *watcher) hostsForNamespace(ctx context.Context, ns *sdTypes.NamespaceSummary) (map[string][]*v1alpha3.WorkloadEntry, error) {
+	hosts := map[string][]*v1alpha3.WorkloadEntry{}
 	svcResp, err := w.cloudmap.ListServices(ctx, &servicediscovery.ListServicesInput{
 		Filters: []sdTypes.ServiceFilter{
 			{
@@ -140,7 +140,7 @@ func (w *watcher) hostsForNamespace(ctx context.Context, ns *sdTypes.NamespaceSu
 	return hosts, nil
 }
 
-func (w *watcher) endpointsForService(ctx context.Context, svc *sdTypes.ServiceSummary, ns *sdTypes.NamespaceSummary) ([]*v1alpha3.ServiceEntry_Endpoint, error) {
+func (w *watcher) endpointsForService(ctx context.Context, svc *sdTypes.ServiceSummary, ns *sdTypes.NamespaceSummary) ([]*v1alpha3.WorkloadEntry, error) {
 	// TODO: use health filter?
 	instOutput, err := w.cloudmap.DiscoverInstances(ctx, &servicediscovery.DiscoverInstancesInput{ServiceName: svc.Name, NamespaceName: ns.Name})
 	if err != nil {
@@ -156,8 +156,8 @@ func (w *watcher) endpointsForService(ctx context.Context, svc *sdTypes.ServiceS
 	return instancesToEndpoints(instOutput.Instances), nil
 }
 
-func instancesToEndpoints(instances []sdTypes.HttpInstanceSummary) []*v1alpha3.ServiceEntry_Endpoint {
-	eps := make([]*v1alpha3.ServiceEntry_Endpoint, 0, len(instances))
+func instancesToEndpoints(instances []sdTypes.HttpInstanceSummary) []*v1alpha3.WorkloadEntry {
+	eps := make([]*v1alpha3.WorkloadEntry, 0, len(instances))
 	for _, inst := range instances {
 		ep := instanceToEndpoint(&inst)
 		if ep != nil {
@@ -167,7 +167,7 @@ func instancesToEndpoints(instances []sdTypes.HttpInstanceSummary) []*v1alpha3.S
 	return eps
 }
 
-func instanceToEndpoint(instance *sdTypes.HttpInstanceSummary) *v1alpha3.ServiceEntry_Endpoint {
+func instanceToEndpoint(instance *sdTypes.HttpInstanceSummary) *v1alpha3.WorkloadEntry {
 	var address string
 	if ip, ok := instance.Attributes["AWS_INSTANCE_IPV4"]; ok {
 		address = ip
@@ -186,5 +186,5 @@ func instanceToEndpoint(instance *sdTypes.HttpInstanceSummary) *v1alpha3.Service
 		log.Errorf("error converting Port string %v to int: %v", port, err)
 	}
 	log.Infof("no port found for address %v, assuming http (80) and https (443)", address)
-	return &v1alpha3.ServiceEntry_Endpoint{Address: address, Ports: map[string]uint32{"http": 80, "https": 443}}
+	return &v1alpha3.WorkloadEntry{Address: address, Ports: map[string]uint32{"http": 80, "https": 443}}
 }

@@ -1,8 +1,10 @@
 package control
 
 import (
+	"context"
 	"testing"
 
+	"istio.io/api/meta/v1alpha1"
 	"istio.io/api/networking/v1alpha3"
 	icapi "istio.io/client-go/pkg/apis/networking/v1alpha3"
 	ic "istio.io/client-go/pkg/clientset/versioned/typed/networking/v1alpha3"
@@ -14,24 +16,24 @@ import (
 
 var defaultHost = "tetrate.io"
 
-var defaultEndpoints = []*v1alpha3.ServiceEntry_Endpoint{
-	&v1alpha3.ServiceEntry_Endpoint{
+var defaultEndpoints = []*v1alpha3.WorkloadEntry{
+	{
 		Address: "8.8.8.8",
 		Ports:   map[string]uint32{"http": 80, "https": 443},
 	},
 }
 
-var defaultHosts = map[string][]*v1alpha3.ServiceEntry_Endpoint{
+var defaultHosts = map[string][]*v1alpha3.WorkloadEntry{
 	defaultHost: defaultEndpoints,
 }
 
 var defaultServiceEntries = map[string]*icapi.ServiceEntry{
 	defaultHost: {
-		v1.TypeMeta{},
-		v1.ObjectMeta{
+		TypeMeta: v1.TypeMeta{},
+		ObjectMeta: v1.ObjectMeta{
 			Name: infer.ServiceEntryName("cloud-map", defaultHost),
 		},
-		v1alpha3.ServiceEntry{
+		Spec: v1alpha3.ServiceEntry{
 			Hosts: []string{defaultHost},
 			// assume external for now
 			Location:   v1alpha3.ServiceEntry_MESH_EXTERNAL,
@@ -39,6 +41,7 @@ var defaultServiceEntries = map[string]*icapi.ServiceEntry{
 			Ports:      infer.Ports(defaultEndpoints),
 			Endpoints:  defaultEndpoints,
 		},
+		Status: v1alpha1.IstioStatus{},
 	},
 }
 
@@ -48,14 +51,14 @@ func TestSynchronizer_garbageCollect(t *testing.T) {
 		deleteCall     bool
 		wantHost       string
 		wantNamespace  string
-		cloudMapHosts  map[string][]*v1alpha3.ServiceEntry_Endpoint
+		cloudMapHosts  map[string][]*v1alpha3.WorkloadEntry
 		serviceEntries map[string]*icapi.ServiceEntry
 	}{
 		{
 			name:           "Deletes Service Entry if host is no longer in Cloud Map",
 			deleteCall:     true,
 			serviceEntries: defaultServiceEntries,
-			cloudMapHosts:  map[string][]*v1alpha3.ServiceEntry_Endpoint{},
+			cloudMapHosts:  map[string][]*v1alpha3.WorkloadEntry{},
 			wantHost:       "cloudmap-tetrate.io",
 			wantNamespace:  "default",
 		},
@@ -73,7 +76,7 @@ func TestSynchronizer_garbageCollect(t *testing.T) {
 				serviceEntry: &mock.SEStore{Result: tt.serviceEntries},
 				client:       &mockIstio{store: make(map[string]*icapi.ServiceEntry)},
 			}
-			s.garbageCollect()
+			s.garbageCollect(context.TODO())
 			if s.client.(*mockIstio).DeleteCall != tt.deleteCall {
 				t.Errorf("Delete called = %v, want %v", s.client.(*mockIstio).DeleteCall, tt.deleteCall)
 			}
@@ -86,9 +89,9 @@ func TestSynchronizer_createOrUpdate(t *testing.T) {
 		name                            string
 		host                            string
 		createCall, updateCall, getCall bool
-		cloudMapHosts                   map[string][]*v1alpha3.ServiceEntry_Endpoint
+		cloudMapHosts                   map[string][]*v1alpha3.WorkloadEntry
 		serviceEntries                  map[string]*icapi.ServiceEntry
-		endpoints                       []*v1alpha3.ServiceEntry_Endpoint
+		endpoints                       []*v1alpha3.WorkloadEntry
 	}{
 		{
 			name:           "Does nothing if identical service entry exists",
@@ -104,12 +107,12 @@ func TestSynchronizer_createOrUpdate(t *testing.T) {
 			host:           defaultHost,
 			cloudMapHosts:  defaultHosts,
 			serviceEntries: defaultServiceEntries,
-			endpoints: []*v1alpha3.ServiceEntry_Endpoint{
-				&v1alpha3.ServiceEntry_Endpoint{
+			endpoints: []*v1alpha3.WorkloadEntry{
+				{
 					Address: "8.8.8.8",
 					Ports:   map[string]uint32{"http": 80, "https": 443},
 				},
-				&v1alpha3.ServiceEntry_Endpoint{
+				{
 					Address: "1.1.1.1",
 					Ports:   map[string]uint32{"http": 80, "https": 443},
 				},
@@ -122,7 +125,7 @@ func TestSynchronizer_createOrUpdate(t *testing.T) {
 			host:           defaultHost,
 			cloudMapHosts:  defaultHosts,
 			serviceEntries: defaultServiceEntries,
-			endpoints:      []*v1alpha3.ServiceEntry_Endpoint{},
+			endpoints:      []*v1alpha3.WorkloadEntry{},
 		},
 		{
 			name:           "Creates a new Service Entry if on doesn't exist",
@@ -135,12 +138,13 @@ func TestSynchronizer_createOrUpdate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.TODO()
 			s := &synchronizer{
 				store:        &mock.Store{Result: tt.cloudMapHosts},
 				serviceEntry: &mock.SEStore{Result: tt.serviceEntries},
 				client:       &mockIstio{store: make(map[string]*icapi.ServiceEntry)},
 			}
-			s.createOrUpdate(tt.host, tt.endpoints)
+			s.createOrUpdate(ctx, tt.host, tt.endpoints)
 			if s.client.(*mockIstio).UpdateCall != tt.updateCall {
 				t.Errorf("Update called = %v, want %v", s.client.(*mockIstio).UpdateCall, tt.createCall)
 			}
@@ -165,21 +169,21 @@ type mockIstio struct {
 	GetCall    bool
 }
 
-func (mi *mockIstio) Delete(_ string, _ *v1.DeleteOptions) error {
+func (mi *mockIstio) Delete(ctx context.Context, _ string, _ v1.DeleteOptions) error {
 	mi.DeleteCall = true
 	return nil
 }
-func (mi *mockIstio) Create(se *icapi.ServiceEntry) (*icapi.ServiceEntry, error) {
+func (mi *mockIstio) Create(ctx context.Context, se *icapi.ServiceEntry, _ v1.CreateOptions) (*icapi.ServiceEntry, error) {
 	mi.CreateCall = true
 	mi.store[se.Name] = se
 	return se, nil
 }
-func (mi *mockIstio) Update(se *icapi.ServiceEntry) (*icapi.ServiceEntry, error) {
+func (mi *mockIstio) Update(ctx context.Context, se *icapi.ServiceEntry, _ v1.UpdateOptions) (*icapi.ServiceEntry, error) {
 	mi.UpdateCall = true
 	mi.store[se.Name] = se
 	return se, nil
 }
-func (mi *mockIstio) Get(name string, _ v1.GetOptions) (*icapi.ServiceEntry, error) {
+func (mi *mockIstio) Get(ctx context.Context, name string, _ v1.GetOptions) (*icapi.ServiceEntry, error) {
 	mi.GetCall = true
 	out, found := mi.store[name]
 	if !found {

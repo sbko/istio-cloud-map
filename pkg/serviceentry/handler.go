@@ -29,7 +29,7 @@ type handler struct {
 	Store
 }
 
-func (c handler) OnAdd(obj interface{}) {
+func (c handler) OnAdd(obj interface{}, isInitialList bool) {
 	// TODO: handle the case this isn't wrong and log, bail out w/o calling insert
 	se := obj.(*v1alpha3.ServiceEntry)
 	c.Insert(se)

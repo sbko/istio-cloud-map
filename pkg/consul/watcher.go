@@ -96,9 +96,9 @@ func (w *watcher) refreshStore() {
 	}
 
 	css := w.describeServices(names)
-	data := make(map[string][]*v1alpha3.ServiceEntry_Endpoint, len(css))
+	data := make(map[string][]*v1alpha3.WorkloadEntry, len(css))
 	for name, cs := range css {
-		eps := make([]*v1alpha3.ServiceEntry_Endpoint, 0, len(cs))
+		eps := make([]*v1alpha3.WorkloadEntry, 0, len(cs))
 		for _, c := range cs {
 			if ep := catalogServiceToEndpoints(c); ep != nil {
 				eps = append(eps, ep)
@@ -154,7 +154,7 @@ func (w *watcher) describeService(name string) ([]*api.CatalogService, error) {
 }
 
 // catalogServiceToEndpoints converts catalog service to service entry endpoint
-func catalogServiceToEndpoints(c *api.CatalogService) *v1alpha3.ServiceEntry_Endpoint {
+func catalogServiceToEndpoints(c *api.CatalogService) *v1alpha3.WorkloadEntry {
 	address := c.Address
 	if address == "" {
 		log.Infof("instance %s of %s.%v is of a type that is not currently supported",
@@ -168,5 +168,5 @@ func catalogServiceToEndpoints(c *api.CatalogService) *v1alpha3.ServiceEntry_End
 	}
 
 	log.Infof("no port found for address %v, assuming http (80) and https (443)", address)
-	return &v1alpha3.ServiceEntry_Endpoint{Address: address, Ports: map[string]uint32{"http": 80, "https": 443}}
+	return &v1alpha3.WorkloadEntry{Address: address, Ports: map[string]uint32{"http": 80, "https": 443}}
 }
