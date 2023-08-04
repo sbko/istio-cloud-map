@@ -101,7 +101,7 @@ func TestEndpoint(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Endpoint(tt.address, tt.port); !reflect.DeepEqual(got, tt.want) {
+			if got := WorkloadEntry(tt.address, tt.port); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Endpoint() = %v, want %v", got, tt.want)
 			}
 		})

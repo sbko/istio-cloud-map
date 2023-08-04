@@ -130,17 +130,17 @@ func (w *watcher) hostsForNamespace(ctx context.Context, ns *sdTypes.NamespaceSu
 	}
 	for _, svc := range svcResp.Services {
 		host := fmt.Sprintf("%v.%v", *svc.Name, *ns.Name)
-		eps, err := w.endpointsForService(ctx, &svc, ns)
+		wes, err := w.workloadEntriesForService(ctx, &svc, ns)
 		if err != nil {
 			return nil, err
 		}
-		log.Infof("%v Endpoints found for %q", len(eps), host)
-		hosts[host] = eps
+		log.Infof("%v Workload Entries found for %q", len(wes), host)
+		hosts[host] = wes
 	}
 	return hosts, nil
 }
 
-func (w *watcher) endpointsForService(ctx context.Context, svc *sdTypes.ServiceSummary, ns *sdTypes.NamespaceSummary) ([]*v1alpha3.WorkloadEntry, error) {
+func (w *watcher) workloadEntriesForService(ctx context.Context, svc *sdTypes.ServiceSummary, ns *sdTypes.NamespaceSummary) ([]*v1alpha3.WorkloadEntry, error) {
 	// TODO: use health filter?
 	instOutput, err := w.cloudmap.DiscoverInstances(ctx, &servicediscovery.DiscoverInstancesInput{ServiceName: svc.Name, NamespaceName: ns.Name})
 	if err != nil {
@@ -153,21 +153,21 @@ func (w *watcher) endpointsForService(ctx context.Context, svc *sdTypes.ServiceS
 			{Attributes: map[string]string{"AWS_INSTANCE_CNAME": host}},
 		}
 	}
-	return instancesToEndpoints(instOutput.Instances), nil
+	return instancesToWorkloadEntries(instOutput.Instances), nil
 }
 
-func instancesToEndpoints(instances []sdTypes.HttpInstanceSummary) []*v1alpha3.WorkloadEntry {
-	eps := make([]*v1alpha3.WorkloadEntry, 0, len(instances))
+func instancesToWorkloadEntries(instances []sdTypes.HttpInstanceSummary) []*v1alpha3.WorkloadEntry {
+	wes := make([]*v1alpha3.WorkloadEntry, 0, len(instances))
 	for _, inst := range instances {
-		ep := instanceToEndpoint(&inst)
-		if ep != nil {
-			eps = append(eps, ep)
+		we := instanceToWorkloadEntry(&inst)
+		if we != nil {
+			wes = append(wes, we)
 		}
 	}
-	return eps
+	return wes
 }
 
-func instanceToEndpoint(instance *sdTypes.HttpInstanceSummary) *v1alpha3.WorkloadEntry {
+func instanceToWorkloadEntry(instance *sdTypes.HttpInstanceSummary) *v1alpha3.WorkloadEntry {
 	var address string
 	if ip, ok := instance.Attributes["AWS_INSTANCE_IPV4"]; ok {
 		address = ip
@@ -181,7 +181,7 @@ func instanceToEndpoint(instance *sdTypes.HttpInstanceSummary) *v1alpha3.Workloa
 	if port, ok := instance.Attributes["AWS_INSTANCE_PORT"]; ok {
 		p, err := strconv.Atoi(port)
 		if err == nil {
-			return infer.Endpoint(address, uint32(p))
+			return infer.WorkloadEntry(address, uint32(p))
 		}
 		log.Errorf("error converting Port string %v to int: %v", port, err)
 	}

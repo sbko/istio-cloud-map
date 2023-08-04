@@ -164,7 +164,7 @@ func catalogServiceToEndpoints(c *api.CatalogService) *v1alpha3.WorkloadEntry {
 
 	port := c.ServicePort
 	if port > 0 { // port is optional and defaults to zero
-		return infer.Endpoint(address, uint32(port))
+		return infer.WorkloadEntry(address, uint32(port))
 	}
 
 	log.Infof("no port found for address %v, assuming http (80) and https (443)", address)

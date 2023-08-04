@@ -76,7 +76,7 @@ func TestSynchronizer_garbageCollect(t *testing.T) {
 				serviceEntry: &mock.SEStore{Result: tt.serviceEntries},
 				client:       &mockIstio{store: make(map[string]*icapi.ServiceEntry)},
 			}
-			s.garbageCollect(context.TODO())
+			s.garbageCollect(context.Background())
 			if s.client.(*mockIstio).DeleteCall != tt.deleteCall {
 				t.Errorf("Delete called = %v, want %v", s.client.(*mockIstio).DeleteCall, tt.deleteCall)
 			}
@@ -169,21 +169,21 @@ type mockIstio struct {
 	GetCall    bool
 }
 
-func (mi *mockIstio) Delete(ctx context.Context, _ string, _ v1.DeleteOptions) error {
+func (mi *mockIstio) Delete(_ context.Context, _ string, _ v1.DeleteOptions) error {
 	mi.DeleteCall = true
 	return nil
 }
-func (mi *mockIstio) Create(ctx context.Context, se *icapi.ServiceEntry, _ v1.CreateOptions) (*icapi.ServiceEntry, error) {
+func (mi *mockIstio) Create(_ context.Context, se *icapi.ServiceEntry, _ v1.CreateOptions) (*icapi.ServiceEntry, error) {
 	mi.CreateCall = true
 	mi.store[se.Name] = se
 	return se, nil
 }
-func (mi *mockIstio) Update(ctx context.Context, se *icapi.ServiceEntry, _ v1.UpdateOptions) (*icapi.ServiceEntry, error) {
+func (mi *mockIstio) Update(_ context.Context, se *icapi.ServiceEntry, _ v1.UpdateOptions) (*icapi.ServiceEntry, error) {
 	mi.UpdateCall = true
 	mi.store[se.Name] = se
 	return se, nil
 }
-func (mi *mockIstio) Get(ctx context.Context, name string, _ v1.GetOptions) (*icapi.ServiceEntry, error) {
+func (mi *mockIstio) Get(_ context.Context, name string, _ v1.GetOptions) (*icapi.ServiceEntry, error) {
 	mi.GetCall = true
 	out, found := mi.store[name]
 	if !found {

@@ -38,9 +38,9 @@ func ServiceEntry(owner v1.OwnerReference, prefix, host string, endpoints []*v1a
 	}
 }
 
-// Endpoint creates a Service Entry endpoint from an address and port
+// WorkloadEntry creates a Workload Entry from an address and port
 // It infers the port name from the port number
-func Endpoint(address string, port uint32) *v1alpha3.WorkloadEntry {
+func WorkloadEntry(address string, port uint32) *v1alpha3.WorkloadEntry {
 	return &v1alpha3.WorkloadEntry{
 		Address: address,
 		Ports:   map[string]uint32{Proto(port): port},
