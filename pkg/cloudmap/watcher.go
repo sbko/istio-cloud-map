@@ -106,8 +106,8 @@ func (w *watcher) refreshStore(ctx context.Context) {
 			return
 		}
 		// Hosts are "svcName.nsName" so by definition can't be the same across namespaces or services
-		for host, eps := range hosts {
-			tempStore[host] = eps
+		for host, wes := range hosts {
+			tempStore[host] = wes
 		}
 	}
 	log.Info("Cloud Map store sync successful")

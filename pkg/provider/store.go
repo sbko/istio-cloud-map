@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	// Store describes a set of Istio endpoint objects from Cloud Map/Consul stored by the hostnames that own them.
+	// Store describes a set of Istio workload entry objects from Cloud Map/Consul stored by the hostnames that own them.
 	// It is asynchronously accessed by a provider and the synchronizer
 	Store interface {
 		// Hosts are all hosts Cloud Map/Consul has told us about
@@ -17,7 +17,7 @@ type (
 
 	store struct {
 		m     *sync.RWMutex
-		hosts map[string][]*v1alpha3.WorkloadEntry // maps host->Endpoints
+		hosts map[string][]*v1alpha3.WorkloadEntry // maps host->workloadEntry
 	}
 )
 
@@ -44,9 +44,9 @@ func (s *store) Set(hosts map[string][]*v1alpha3.WorkloadEntry) {
 func copyMap(m map[string][]*v1alpha3.WorkloadEntry) map[string][]*v1alpha3.WorkloadEntry {
 	out := make(map[string][]*v1alpha3.WorkloadEntry, len(m))
 	for k, v := range m {
-		eps := make([]*v1alpha3.WorkloadEntry, len(v))
-		copy(eps, v)
-		out[k] = eps
+		wes := make([]*v1alpha3.WorkloadEntry, len(v))
+		copy(wes, v)
+		out[k] = wes
 	}
 	return out
 }

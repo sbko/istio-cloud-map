@@ -16,7 +16,7 @@ import (
 
 var defaultHost = "tetrate.io"
 
-var defaultEndpoints = []*v1alpha3.WorkloadEntry{
+var defaultWorkloadEntries = []*v1alpha3.WorkloadEntry{
 	{
 		Address: "8.8.8.8",
 		Ports:   map[string]uint32{"http": 80, "https": 443},
@@ -24,7 +24,7 @@ var defaultEndpoints = []*v1alpha3.WorkloadEntry{
 }
 
 var defaultHosts = map[string][]*v1alpha3.WorkloadEntry{
-	defaultHost: defaultEndpoints,
+	defaultHost: defaultWorkloadEntries,
 }
 
 var defaultServiceEntries = map[string]*icapi.ServiceEntry{
@@ -37,9 +37,9 @@ var defaultServiceEntries = map[string]*icapi.ServiceEntry{
 			Hosts: []string{defaultHost},
 			// assume external for now
 			Location:   v1alpha3.ServiceEntry_MESH_EXTERNAL,
-			Resolution: infer.Resolution(defaultEndpoints),
-			Ports:      infer.Ports(defaultEndpoints),
-			Endpoints:  defaultEndpoints,
+			Resolution: infer.Resolution(defaultWorkloadEntries),
+			Ports:      infer.Ports(defaultWorkloadEntries),
+			Endpoints:  defaultWorkloadEntries,
 		},
 		Status: v1alpha1.IstioStatus{},
 	},
@@ -91,23 +91,23 @@ func TestSynchronizer_createOrUpdate(t *testing.T) {
 		createCall, updateCall, getCall bool
 		cloudMapHosts                   map[string][]*v1alpha3.WorkloadEntry
 		serviceEntries                  map[string]*icapi.ServiceEntry
-		endpoints                       []*v1alpha3.WorkloadEntry
+		workloadEntries                 []*v1alpha3.WorkloadEntry
 	}{
 		{
-			name:           "Does nothing if identical service entry exists",
-			host:           defaultHost,
-			cloudMapHosts:  defaultHosts,
-			serviceEntries: defaultServiceEntries,
-			endpoints:      defaultEndpoints,
+			name:            "Does nothing if identical service entry exists",
+			host:            defaultHost,
+			cloudMapHosts:   defaultHosts,
+			serviceEntries:  defaultServiceEntries,
+			workloadEntries: defaultWorkloadEntries,
 		},
 		{
-			name:           "Updates Service Entry if new endpoints are added",
+			name:           "Updates Service Entry if new workload entries are added",
 			getCall:        true,
 			updateCall:     true,
 			host:           defaultHost,
 			cloudMapHosts:  defaultHosts,
 			serviceEntries: defaultServiceEntries,
-			endpoints: []*v1alpha3.WorkloadEntry{
+			workloadEntries: []*v1alpha3.WorkloadEntry{
 				{
 					Address: "8.8.8.8",
 					Ports:   map[string]uint32{"http": 80, "https": 443},
@@ -119,21 +119,21 @@ func TestSynchronizer_createOrUpdate(t *testing.T) {
 			},
 		},
 		{
-			name:           "Updates Service Entry if endpoints are removed",
-			getCall:        true,
-			updateCall:     true,
-			host:           defaultHost,
-			cloudMapHosts:  defaultHosts,
-			serviceEntries: defaultServiceEntries,
-			endpoints:      []*v1alpha3.WorkloadEntry{},
+			name:            "Updates Service Entry if workload entries are removed",
+			getCall:         true,
+			updateCall:      true,
+			host:            defaultHost,
+			cloudMapHosts:   defaultHosts,
+			serviceEntries:  defaultServiceEntries,
+			workloadEntries: []*v1alpha3.WorkloadEntry{},
 		},
 		{
-			name:           "Creates a new Service Entry if on doesn't exist",
-			createCall:     true,
-			host:           "not.tetrate.io",
-			cloudMapHosts:  defaultHosts,
-			serviceEntries: defaultServiceEntries,
-			endpoints:      defaultEndpoints,
+			name:            "Creates a new Service Entry if on doesn't exist",
+			createCall:      true,
+			host:            "not.tetrate.io",
+			cloudMapHosts:   defaultHosts,
+			serviceEntries:  defaultServiceEntries,
+			workloadEntries: defaultWorkloadEntries,
 		},
 	}
 	for _, tt := range tests {
@@ -144,7 +144,7 @@ func TestSynchronizer_createOrUpdate(t *testing.T) {
 				serviceEntry: &mock.SEStore{Result: tt.serviceEntries},
 				client:       &mockIstio{store: make(map[string]*icapi.ServiceEntry)},
 			}
-			s.createOrUpdate(ctx, tt.host, tt.endpoints)
+			s.createOrUpdate(ctx, tt.host, tt.workloadEntries)
 			if s.client.(*mockIstio).UpdateCall != tt.updateCall {
 				t.Errorf("Update called = %v, want %v", s.client.(*mockIstio).UpdateCall, tt.createCall)
 			}

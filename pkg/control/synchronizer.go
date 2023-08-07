@@ -52,27 +52,27 @@ func (s *synchronizer) Run(ctx context.Context) {
 }
 
 func (s *synchronizer) sync(ctx context.Context) {
-	// Entries are generated per host; entirely from information in the slice of endpoints;
-	// so we only actually need to compare the current endpoints with the new endpoints.
-	for host, endpoints := range s.store.Hosts() {
+	// Entries are generated per host; entirely from information in the slice of workload entries;
+	// so we only actually need to compare the current workload entries with the new workload entries.
+	for host, workloadEntries := range s.store.Hosts() {
 		// If a service entry with the same host has been created by someone else, continue.
 		if _, ok := s.serviceEntry.Theirs()[host]; ok {
 			continue
 		}
-		s.createOrUpdate(ctx, host, endpoints)
+		s.createOrUpdate(ctx, host, workloadEntries)
 	}
 	s.garbageCollect(ctx)
 }
 
-func (s *synchronizer) createOrUpdate(ctx context.Context, host string, endpoints []*v1alpha3.WorkloadEntry) {
-	newServiceEntry := infer.ServiceEntry(s.owner, s.serviceEntryPrefix, host, endpoints)
+func (s *synchronizer) createOrUpdate(ctx context.Context, host string, workloadEntries []*v1alpha3.WorkloadEntry) {
+	newServiceEntry := infer.ServiceEntry(s.owner, s.serviceEntryPrefix, host, workloadEntries)
 	name := infer.ServiceEntryName(s.serviceEntryPrefix, host)
 	if _, ok := s.serviceEntry.Ours()[host]; ok {
 		// If we have already created an identical service entry, return.
-		if reflect.DeepEqual(s.serviceEntry.Ours()[host].Spec.Endpoints, endpoints) {
+		if reflect.DeepEqual(s.serviceEntry.Ours()[host].Spec.Endpoints, workloadEntries) {
 			return
 		}
-		// Otherwise, endpoints have changed so update existing Service Entry
+		// Otherwise, workloadEntries have changed so update existing Service Entry
 		n := infer.ServiceEntryName(s.serviceEntryPrefix, host)
 		oldServiceEntry, err := s.client.Get(ctx, n, v1.GetOptions{})
 		if err != nil {

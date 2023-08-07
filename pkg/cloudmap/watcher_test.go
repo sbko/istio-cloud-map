@@ -139,7 +139,7 @@ func TestWatcher_hostsForNamespace(t *testing.T) {
 			want:        map[string][]*v1alpha3.WorkloadEntry{"demo.tetrate.io": {inferedIPv41WorkloadEntry}},
 		},
 		{
-			name:       "returns host with host as endpoint if host exists but has no Endpoints",
+			name:       "returns host with host as workload entry if host exists but has no Workload Entries",
 			ns:         sdTypes.NamespaceSummary{Id: &hostname, Name: &hostname},
 			listSvcRes: &goldenPathListServices,
 			discInstRes: &servicediscovery.DiscoverInstancesOutput{
