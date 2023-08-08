@@ -137,7 +137,7 @@ make docker-push
 You can override the hub and tag using the `REGISTRY` and `TAG` environment variables:
 
 ```bash
-env REGISTRY=gcr.io/tetratelabs TAG=v0.2 \
+env REGISTRY=gcr.io/tetratelabs TAG=v0.3 \
     make docker-push
 ```
 
@@ -182,7 +182,7 @@ In particular the controller needs its `--kube-config` flag set to talk to the r
 
 To run go tests locally:
 ```bash
-docker run -d -p 8500:8500 consul:1.8.3 # setup local consul for testing pkg/consul
+docker run -d -p 8500:8500 consul:1.15.4 # setup local consul for testing pkg/consul
 
 go test ./... -v -race
 ```
