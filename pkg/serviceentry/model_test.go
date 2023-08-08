@@ -17,9 +17,10 @@ package serviceentry
 import (
 	"testing"
 
+	"istio.io/api/meta/v1alpha1"
 	"istio.io/api/networking/v1alpha3"
 	ic "istio.io/client-go/pkg/apis/networking/v1alpha3"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
@@ -40,18 +41,19 @@ var (
 	}
 
 	us = &ic.ServiceEntry{
-		v1.TypeMeta{},
-		v1.ObjectMeta{
+		TypeMeta: v1.TypeMeta{},
+		ObjectMeta: v1.ObjectMeta{
 			OwnerReferences: []v1.OwnerReference{baseOwner},
 		},
-		v1alpha3.ServiceEntry{
+		Spec: v1alpha3.ServiceEntry{
 			Hosts: []string{"1.us", "2.us"},
 		},
+		Status: v1alpha1.IstioStatus{},
 	}
 
 	them = &ic.ServiceEntry{
-		v1.TypeMeta{},
-		v1.ObjectMeta{
+		TypeMeta: v1.TypeMeta{},
+		ObjectMeta: v1.ObjectMeta{
 			OwnerReferences: []v1.OwnerReference{
 				{
 					APIVersion: "cloud-map.istio.io",
@@ -61,9 +63,10 @@ var (
 				},
 			},
 		},
-		v1alpha3.ServiceEntry{
+		Spec: v1alpha3.ServiceEntry{
 			Hosts: []string{"1.them", "2.them", "3.them"},
 		},
+		Status: v1alpha1.IstioStatus{},
 	}
 )
 

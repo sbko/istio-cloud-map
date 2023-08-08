@@ -84,7 +84,7 @@ func (w *watcher) Run(ctx context.Context) {
 	}
 }
 
-// fetch services and endpoints from consul catalog and sync them with Store
+// fetch services and workload entries from consul catalog and sync them with Store
 func (w *watcher) refreshStore() {
 	names, err := w.listServices()
 	if err == errIndexChangeTimeout {
@@ -96,16 +96,16 @@ func (w *watcher) refreshStore() {
 	}
 
 	css := w.describeServices(names)
-	data := make(map[string][]*v1alpha3.ServiceEntry_Endpoint, len(css))
+	data := make(map[string][]*v1alpha3.WorkloadEntry, len(css))
 	for name, cs := range css {
-		eps := make([]*v1alpha3.ServiceEntry_Endpoint, 0, len(cs))
+		wes := make([]*v1alpha3.WorkloadEntry, 0, len(cs))
 		for _, c := range cs {
-			if ep := catalogServiceToEndpoints(c); ep != nil {
-				eps = append(eps, ep)
+			if we := catalogServiceToWorkloadEntry(c); we != nil {
+				wes = append(wes, we)
 			}
 		}
-		if len(eps) > 0 {
-			data[name] = eps
+		if len(wes) > 0 {
+			data[name] = wes
 		}
 	}
 	w.store.Set(data)
@@ -153,8 +153,8 @@ func (w *watcher) describeService(name string) ([]*api.CatalogService, error) {
 	return svcs, nil
 }
 
-// catalogServiceToEndpoints converts catalog service to service entry endpoint
-func catalogServiceToEndpoints(c *api.CatalogService) *v1alpha3.ServiceEntry_Endpoint {
+// catalogServiceToWorkloadEntry converts catalog service to workload entry
+func catalogServiceToWorkloadEntry(c *api.CatalogService) *v1alpha3.WorkloadEntry {
 	address := c.Address
 	if address == "" {
 		log.Infof("instance %s of %s.%v is of a type that is not currently supported",
@@ -164,9 +164,9 @@ func catalogServiceToEndpoints(c *api.CatalogService) *v1alpha3.ServiceEntry_End
 
 	port := c.ServicePort
 	if port > 0 { // port is optional and defaults to zero
-		return infer.Endpoint(address, uint32(port))
+		return infer.WorkloadEntry(address, uint32(port))
 	}
 
 	log.Infof("no port found for address %v, assuming http (80) and https (443)", address)
-	return &v1alpha3.ServiceEntry_Endpoint{Address: address, Ports: map[string]uint32{"http": 80, "https": 443}}
+	return &v1alpha3.WorkloadEntry{Address: address, Ports: map[string]uint32{"http": 80, "https": 443}}
 }

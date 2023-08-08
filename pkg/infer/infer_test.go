@@ -8,39 +8,39 @@ import (
 	"istio.io/api/networking/v1alpha3"
 )
 
-var ipEndpoint = &v1alpha3.ServiceEntry_Endpoint{Address: "8.8.8.8"}
-var hostnameEndpoint = &v1alpha3.ServiceEntry_Endpoint{Address: "demo.tetrate.io"}
+var ipWorkloadEntry = &v1alpha3.WorkloadEntry{Address: "8.8.8.8"}
+var hostnameWorkloadEntry = &v1alpha3.WorkloadEntry{Address: "demo.tetrate.io"}
 
 func TestResolution(t *testing.T) {
 	tests := []struct {
-		name      string
-		endpoints []*v1alpha3.ServiceEntry_Endpoint
-		want      v1alpha3.ServiceEntry_Resolution
+		name            string
+		workloadEntries []*v1alpha3.WorkloadEntry
+		want            v1alpha3.ServiceEntry_Resolution
 	}{
 		{
-			name:      "hostname endpoints infer DNS",
-			endpoints: []*v1alpha3.ServiceEntry_Endpoint{hostnameEndpoint},
-			want:      v1alpha3.ServiceEntry_DNS,
+			name:            "hostname workload entries infer DNS",
+			workloadEntries: []*v1alpha3.WorkloadEntry{hostnameWorkloadEntry},
+			want:            v1alpha3.ServiceEntry_DNS,
 		},
 		{
-			name:      "IP only endpoints infer STATIC",
-			endpoints: []*v1alpha3.ServiceEntry_Endpoint{ipEndpoint},
-			want:      v1alpha3.ServiceEntry_STATIC,
+			name:            "IP only workload entries infer STATIC",
+			workloadEntries: []*v1alpha3.WorkloadEntry{ipWorkloadEntry},
+			want:            v1alpha3.ServiceEntry_STATIC,
 		},
 		{
-			name:      "Mixed endpoints infer DNS",
-			endpoints: []*v1alpha3.ServiceEntry_Endpoint{ipEndpoint, hostnameEndpoint},
-			want:      v1alpha3.ServiceEntry_DNS,
+			name:            "Mixed workload entries infer DNS",
+			workloadEntries: []*v1alpha3.WorkloadEntry{ipWorkloadEntry, hostnameWorkloadEntry},
+			want:            v1alpha3.ServiceEntry_DNS,
 		},
 		{
-			name:      "nil endpoints infer DNS",
-			endpoints: nil,
-			want:      v1alpha3.ServiceEntry_DNS,
+			name:            "nil workload entries infer DNS",
+			workloadEntries: nil,
+			want:            v1alpha3.ServiceEntry_DNS,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Resolution(tt.endpoints); !reflect.DeepEqual(got, tt.want) {
+			if got := Resolution(tt.workloadEntries); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Resolution() = %v, want %v", got, tt.want)
 			}
 		})
@@ -49,51 +49,51 @@ func TestResolution(t *testing.T) {
 
 func TestPorts(t *testing.T) {
 	tests := []struct {
-		name      string
-		endpoints []*v1alpha3.ServiceEntry_Endpoint
-		want      []*v1alpha3.Port
+		name            string
+		workloadEntries []*v1alpha3.WorkloadEntry
+		want            []*v1alpha3.ServicePort
 	}{
 		{
-			name: "Two endpoints with different ports creates two ports",
-			endpoints: []*v1alpha3.ServiceEntry_Endpoint{
-				&v1alpha3.ServiceEntry_Endpoint{Address: "1.1.1.1", Ports: map[string]uint32{"http": 80}},
-				&v1alpha3.ServiceEntry_Endpoint{Address: "8.8.8.8", Ports: map[string]uint32{"https": 443}},
+			name: "Two workload entries with different ports creates two ports",
+			workloadEntries: []*v1alpha3.WorkloadEntry{
+				{Address: "1.1.1.1", Ports: map[string]uint32{"http": 80}},
+				{Address: "8.8.8.8", Ports: map[string]uint32{"https": 443}},
 			},
-			want: []*v1alpha3.Port{
-				&v1alpha3.Port{Number: 80, Name: "http", Protocol: "HTTP"},
-				&v1alpha3.Port{Number: 443, Name: "https", Protocol: "HTTPS"},
+			want: []*v1alpha3.ServicePort{
+				{Number: 80, Name: "http", Protocol: "HTTP"},
+				{Number: 443, Name: "https", Protocol: "HTTPS"},
 			},
 		},
 		{
-			name: "Two endpoints with the same port are de-duped",
-			endpoints: []*v1alpha3.ServiceEntry_Endpoint{
-				&v1alpha3.ServiceEntry_Endpoint{Address: "1.1.1.1", Ports: map[string]uint32{"http": 80}},
-				&v1alpha3.ServiceEntry_Endpoint{Address: "8.8.8.8", Ports: map[string]uint32{"http": 80}},
+			name: "Two workload entries with the same port are de-duped",
+			workloadEntries: []*v1alpha3.WorkloadEntry{
+				{Address: "1.1.1.1", Ports: map[string]uint32{"http": 80}},
+				{Address: "8.8.8.8", Ports: map[string]uint32{"http": 80}},
 			},
-			want: []*v1alpha3.Port{&v1alpha3.Port{Number: 80, Name: "http", Protocol: "HTTP"}},
+			want: []*v1alpha3.ServicePort{{Number: 80, Name: "http", Protocol: "HTTP"}},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Ports(tt.endpoints); !reflect.DeepEqual(got, tt.want) {
+			if got := Ports(tt.workloadEntries); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Ports() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestEndpoint(t *testing.T) {
+func TestWorkloadEntry(t *testing.T) {
 	tests := []struct {
 		name    string
 		address string
 		port    uint32
-		want    *v1alpha3.ServiceEntry_Endpoint
+		want    *v1alpha3.WorkloadEntry
 	}{
 		{
-			name:    "Generates a Service Entry endpoint from an address port pair",
+			name:    "Generates a Workload Entry from an address port pair",
 			address: "1.1.1.1",
 			port:    80,
-			want: &v1alpha3.ServiceEntry_Endpoint{
+			want: &v1alpha3.WorkloadEntry{
 				Address: "1.1.1.1",
 				Ports:   map[string]uint32{"http": 80},
 			},
@@ -101,8 +101,8 @@ func TestEndpoint(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Endpoint(tt.address, tt.port); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Endpoint() = %v, want %v", got, tt.want)
+			if got := WorkloadEntry(tt.address, tt.port); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("WorkloadEntry() = %v, want %v", got, tt.want)
 			}
 		})
 	}

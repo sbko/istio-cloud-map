@@ -111,9 +111,9 @@ func testRefreshStore(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			for _, eps := range tt.services {
-				for _, ep := range eps {
-					_, err := testClient.Catalog().Register(ep, nil)
+			for _, wes := range tt.services {
+				for _, we := range wes {
+					_, err := testClient.Catalog().Register(we, nil)
 					if err != nil {
 						t.Fatal(err)
 					}
@@ -122,14 +122,14 @@ func testRefreshStore(t *testing.T) {
 
 			defer func() {
 				// clean up
-				for _, eps := range tt.services {
-					for _, ep := range eps {
+				for _, wes := range tt.services {
+					for _, we := range wes {
 						if _, err := testClient.Catalog().Deregister(&api.CatalogDeregistration{
-							Node:      ep.Node,
-							Address:   ep.Address,
-							ServiceID: ep.Service.ID,
+							Node:      we.Node,
+							Address:   we.Address,
+							ServiceID: we.Service.ID,
 						}, nil); err != nil {
-							t.Fatalf("failed to clean up service %v: %v", *ep, err)
+							t.Fatalf("failed to clean up service %v: %v", *we, err)
 						}
 					}
 				}
@@ -143,13 +143,13 @@ func testRefreshStore(t *testing.T) {
 				t.Fatalf("number of hosts must be %d but got %d: %v", len(tt.services)+1, len(actual), actual)
 			}
 
-			for name, eps := range tt.services {
+			for name, wes := range tt.services {
 				actual := actual[name]
-				if len(actual) != len(eps) {
-					t.Fatalf("%s must have %d endpoints but got %d", name, len(eps), len(actual))
+				if len(actual) != len(wes) {
+					t.Fatalf("%s must have %d workload entries but got %d", name, len(wes), len(actual))
 				}
 
-				for _, exp := range eps {
+				for _, exp := range wes {
 					var found bool
 					for _, e := range actual {
 						if e.Address == exp.Address {
@@ -159,7 +159,7 @@ func testRefreshStore(t *testing.T) {
 					}
 
 					if !found {
-						t.Fatalf("address %s must exist as an endpoint of service %s", exp.Address, name)
+						t.Fatalf("address %s must exist as a workload entry of service %s", exp.Address, name)
 					}
 				}
 			}
@@ -220,7 +220,7 @@ func testDescribeService(t *testing.T) {
 					t.Fatal(err)
 				}
 				if len(ret) != 1 {
-					t.Fatalf("the number of endpoint must be 1 but got %d", len(ret))
+					t.Fatalf("the number of workload entries must be 1 but got %d", len(ret))
 				}
 
 				actual := ret[0]
@@ -311,16 +311,16 @@ func testListServices(t *testing.T) {
 	})
 }
 
-func TestCatalogServiceToEndpoints(t *testing.T) {
+func TestCatalogServiceToWorkloadEntry(t *testing.T) {
 	// empty address
-	res := catalogServiceToEndpoints(&api.CatalogService{})
+	res := catalogServiceToWorkloadEntry(&api.CatalogService{})
 	if res != nil {
 		t.Errorf("result must be nil but got %v", res)
 	}
 
 	// empty port
 	in := &api.CatalogService{Address: "192.0.2.4"}
-	res = catalogServiceToEndpoints(in)
+	res = catalogServiceToWorkloadEntry(in)
 	if res.Address != in.Address {
 		t.Errorf("address must be %s but got %s", in.Address, res.Address)
 	}
@@ -333,7 +333,7 @@ func TestCatalogServiceToEndpoints(t *testing.T) {
 
 	// address and ports are provided
 	in = &api.CatalogService{Address: "192.0.2.10", ServicePort: 8080}
-	res = catalogServiceToEndpoints(in)
+	res = catalogServiceToWorkloadEntry(in)
 	if res.Address != in.Address {
 		t.Errorf("address must be %s but got %s", in.Address, res.Address)
 	}

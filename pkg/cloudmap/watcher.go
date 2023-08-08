@@ -98,7 +98,7 @@ func (w *watcher) refreshStore(ctx context.Context) {
 		return
 	}
 	// We want to continue to use existing store on error
-	tempStore := map[string][]*v1alpha3.ServiceEntry_Endpoint{}
+	tempStore := map[string][]*v1alpha3.WorkloadEntry{}
 	for _, ns := range nsResp.Namespaces {
 		hosts, err := w.hostsForNamespace(ctx, &ns)
 		if err != nil {
@@ -106,16 +106,16 @@ func (w *watcher) refreshStore(ctx context.Context) {
 			return
 		}
 		// Hosts are "svcName.nsName" so by definition can't be the same across namespaces or services
-		for host, eps := range hosts {
-			tempStore[host] = eps
+		for host, wes := range hosts {
+			tempStore[host] = wes
 		}
 	}
 	log.Info("Cloud Map store sync successful")
 	w.store.Set(tempStore)
 }
 
-func (w *watcher) hostsForNamespace(ctx context.Context, ns *sdTypes.NamespaceSummary) (map[string][]*v1alpha3.ServiceEntry_Endpoint, error) {
-	hosts := map[string][]*v1alpha3.ServiceEntry_Endpoint{}
+func (w *watcher) hostsForNamespace(ctx context.Context, ns *sdTypes.NamespaceSummary) (map[string][]*v1alpha3.WorkloadEntry, error) {
+	hosts := map[string][]*v1alpha3.WorkloadEntry{}
 	svcResp, err := w.cloudmap.ListServices(ctx, &servicediscovery.ListServicesInput{
 		Filters: []sdTypes.ServiceFilter{
 			{
@@ -130,17 +130,17 @@ func (w *watcher) hostsForNamespace(ctx context.Context, ns *sdTypes.NamespaceSu
 	}
 	for _, svc := range svcResp.Services {
 		host := fmt.Sprintf("%v.%v", *svc.Name, *ns.Name)
-		eps, err := w.endpointsForService(ctx, &svc, ns)
+		wes, err := w.workloadEntriesForService(ctx, &svc, ns)
 		if err != nil {
 			return nil, err
 		}
-		log.Infof("%v Endpoints found for %q", len(eps), host)
-		hosts[host] = eps
+		log.Infof("%v Workload Entries found for %q", len(wes), host)
+		hosts[host] = wes
 	}
 	return hosts, nil
 }
 
-func (w *watcher) endpointsForService(ctx context.Context, svc *sdTypes.ServiceSummary, ns *sdTypes.NamespaceSummary) ([]*v1alpha3.ServiceEntry_Endpoint, error) {
+func (w *watcher) workloadEntriesForService(ctx context.Context, svc *sdTypes.ServiceSummary, ns *sdTypes.NamespaceSummary) ([]*v1alpha3.WorkloadEntry, error) {
 	// TODO: use health filter?
 	instOutput, err := w.cloudmap.DiscoverInstances(ctx, &servicediscovery.DiscoverInstancesInput{ServiceName: svc.Name, NamespaceName: ns.Name})
 	if err != nil {
@@ -153,21 +153,21 @@ func (w *watcher) endpointsForService(ctx context.Context, svc *sdTypes.ServiceS
 			{Attributes: map[string]string{"AWS_INSTANCE_CNAME": host}},
 		}
 	}
-	return instancesToEndpoints(instOutput.Instances), nil
+	return instancesToWorkloadEntries(instOutput.Instances), nil
 }
 
-func instancesToEndpoints(instances []sdTypes.HttpInstanceSummary) []*v1alpha3.ServiceEntry_Endpoint {
-	eps := make([]*v1alpha3.ServiceEntry_Endpoint, 0, len(instances))
+func instancesToWorkloadEntries(instances []sdTypes.HttpInstanceSummary) []*v1alpha3.WorkloadEntry {
+	wes := make([]*v1alpha3.WorkloadEntry, 0, len(instances))
 	for _, inst := range instances {
-		ep := instanceToEndpoint(&inst)
-		if ep != nil {
-			eps = append(eps, ep)
+		we := instanceToWorkloadEntry(&inst)
+		if we != nil {
+			wes = append(wes, we)
 		}
 	}
-	return eps
+	return wes
 }
 
-func instanceToEndpoint(instance *sdTypes.HttpInstanceSummary) *v1alpha3.ServiceEntry_Endpoint {
+func instanceToWorkloadEntry(instance *sdTypes.HttpInstanceSummary) *v1alpha3.WorkloadEntry {
 	var address string
 	if ip, ok := instance.Attributes["AWS_INSTANCE_IPV4"]; ok {
 		address = ip
@@ -181,10 +181,10 @@ func instanceToEndpoint(instance *sdTypes.HttpInstanceSummary) *v1alpha3.Service
 	if port, ok := instance.Attributes["AWS_INSTANCE_PORT"]; ok {
 		p, err := strconv.Atoi(port)
 		if err == nil {
-			return infer.Endpoint(address, uint32(p))
+			return infer.WorkloadEntry(address, uint32(p))
 		}
 		log.Errorf("error converting Port string %v to int: %v", port, err)
 	}
 	log.Infof("no port found for address %v, assuming http (80) and https (443)", address)
-	return &v1alpha3.ServiceEntry_Endpoint{Address: address, Ports: map[string]uint32{"http": 80, "https": 443}}
+	return &v1alpha3.WorkloadEntry{Address: address, Ports: map[string]uint32{"http": 80, "https": 443}}
 }
