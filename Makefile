@@ -1,5 +1,5 @@
 # override to push to a different registry or tag the image differently
-REGISTRY ?= gcr.io/tetratelabs
+REGISTRY ?= ghcr.io/tetratelabs
 TAG ?= v0.3
 
 # Make sure we pick up any local overrides.
