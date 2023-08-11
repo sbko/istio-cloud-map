@@ -1,9 +1,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: istio-cloud-map-service-entry-role
+  name: istio-registry-sync-service-entry-role
   labels:
-    app: istio-cloud-map
+    app: istio-registry-sync
 rules:
 # ServiceEntries
 - apiGroups: ["networking.istio.io"]
@@ -17,14 +17,14 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: istio-cloud-map-service-entry-rolebinding
+  name: istio-registry-sync-service-entry-rolebinding
   labels:
-    app: istio-cloud-map
+    app: istio-registry-sync
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: istio-cloud-map-service-entry-role
+  name: istio-registry-sync-service-entry-role
 subjects:
   - kind: ServiceAccount
-    name: istio-cloud-map-service-account
+    name: istio-registry-sync-service-account
     namespace: default

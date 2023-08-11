@@ -15,8 +15,8 @@ import (
 	"github.com/pkg/errors"
 	"istio.io/api/networking/v1alpha3"
 
-	"github.com/tetratelabs/istio-cloud-map/pkg/infer"
-	"github.com/tetratelabs/istio-cloud-map/pkg/provider"
+	"github.com/tetratelabs/istio-registry-sync/pkg/infer"
+	"github.com/tetratelabs/istio-registry-sync/pkg/provider"
 	"github.com/tetratelabs/log"
 )
 

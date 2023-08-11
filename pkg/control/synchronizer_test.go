@@ -10,8 +10,8 @@ import (
 	ic "istio.io/client-go/pkg/clientset/versioned/typed/networking/v1alpha3"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/tetratelabs/istio-cloud-map/pkg/control/mock"
-	"github.com/tetratelabs/istio-cloud-map/pkg/infer"
+	"github.com/tetratelabs/istio-registry-sync/pkg/control/mock"
+	"github.com/tetratelabs/istio-registry-sync/pkg/infer"
 )
 
 var defaultHost = "tetrate.io"

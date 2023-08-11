@@ -11,7 +11,7 @@ kubectl -n default create configmap aws-config \
 ```
 2. Create IAM SA with read access to AWS Cloud Map for the operator to use. [IAM roles for service accounts](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html)
 ```bash
-eksctl create iamserviceaccount --name istio-cloud-map-service-account --namespace default --cluster <YOUR CLUSTER> --role-name cloudmap-read \
+eksctl create iamserviceaccount --name istio-registry-sync-service-account --namespace default --cluster <YOUR CLUSTER> --role-name cloudmap-read \
 --attach-policy-arn arn:aws:iam::aws:policy/AWSCloudMapReadOnlyAccess --approve
 ```
 3. Deploy the Istio Cloud Map Operator:
@@ -110,7 +110,7 @@ Edit the configuration in `kubernetes/aws-config.yaml`. There are two pieces:
 
 ## Configuring the Operator
 
-`istio-cloud-map serve` flags:
+`istio-registry-sync serve` flags:
 | Flag | Type | Description |
 |------|------|-------------|
 | `--aws-access-key-id` | string | AWS Access Key ID to use to connect to Cloud Map. Use flags for both this and `--aws-secret-access-key` OR use the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. Flags and env vars cannot be mixed |
@@ -118,7 +118,7 @@ Edit the configuration in `kubernetes/aws-config.yaml`. There are two pieces:
 | `--aws-secret-access-key` | string |  AWS Secret Access Key to use to connect to Cloud Map. Use flags for both this and `--aws-access-key-id` OR use the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. Flags and env vars cannot be mixed |
 | `--debug` | boolean | if true, enables more logging (default true) |
 | `-h`, `--help` | none | help for serve |
-| `--id` | string | ID of this instance; instances will only ServiceEntries marked with their own ID. (default "istio-cloud-map-operator") |
+| `--id` | string | ID of this instance; instances will only ServiceEntries marked with their own ID. (default "istio-registry-sync-operator") |
 | `--kube-config` | string | kubeconfig location; if empty the server will assume it's in a cluster; for local testing use ~/.kube/config |
 | `--namespace` | string | If provided, the namespace this operator publishes ServiceEntries to. If no value is provided it will be populated from the `PUBLISH_NAMESPACE` environment variable. If all are empty, the operator will publish into the namespace it is deployed in |
 
@@ -144,7 +144,7 @@ env REGISTRY=ghcr.io/tetratelabs TAG=v0.3 \
 
 Alternatively, just use `go`:
 ```bash
-go build -o istio-cloud-map github.com/tetratelabs/istio-cloud-map/cmd/istio-cloud-map
+go build -o istio-registry-sync github.com/tetratelabs/istio-registry-sync/cmd/istio-registry-sync
 ``` 
 
 ## Running Locally
@@ -163,9 +163,9 @@ make docker-run
 
 or via go:
 ```bash
-go build -o istio-cloud-map github.com/tetratelabs/istio-cloud-map/cmd/istio-cloud-map
+go build -o istio-registry-sync github.com/tetratelabs/istio-registry-sync/cmd/istio-registry-sync
 
-./istio-cloud-map serve \
+./istio-registry-sync serve \
     --kube-config ~/.kube/config \
     --aws-access-key-id "my access key ID" \
     --aws-secret-access-key "my secret access key" \
@@ -173,7 +173,7 @@ go build -o istio-cloud-map github.com/tetratelabs/istio-cloud-map/cmd/istio-clo
  ```
 or (if environmental variables for AWS exported - don't specify those):   
 ```bash
-./istio-cloud-map serve \
+./istio-registry-sync serve \
     --kube-config ~/.kube/config 
 ```
 

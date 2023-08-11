@@ -1,6 +1,6 @@
 .idea
 /vendor
-docker/istio-cloud-map-static
+docker/istio-registry-sync-static
 .makerc
 /main
-/istio-cloud-map
+/istio-registry-sync

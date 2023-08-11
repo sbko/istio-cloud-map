@@ -4,7 +4,7 @@ import (
 	"istio.io/client-go/pkg/apis/networking/v1alpha3"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/tetratelabs/istio-cloud-map/pkg/serviceentry"
+	"github.com/tetratelabs/istio-registry-sync/pkg/serviceentry"
 )
 
 // SEStore is a mock for stubbing out serviceentry store

@@ -1,4 +1,4 @@
-module github.com/tetratelabs/istio-cloud-map
+module github.com/tetratelabs/istio-registry-sync
 
 go 1.20
 

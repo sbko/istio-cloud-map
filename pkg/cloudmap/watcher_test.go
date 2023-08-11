@@ -11,7 +11,7 @@ import (
 	sdTypes "github.com/aws/aws-sdk-go-v2/service/servicediscovery/types"
 	"istio.io/api/networking/v1alpha3"
 
-	"github.com/tetratelabs/istio-cloud-map/pkg/provider"
+	"github.com/tetratelabs/istio-registry-sync/pkg/provider"
 )
 
 type mockSDAPI struct {

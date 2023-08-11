@@ -30,11 +30,11 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/tetratelabs/istio-cloud-map/pkg/cloudmap"
-	"github.com/tetratelabs/istio-cloud-map/pkg/consul"
-	"github.com/tetratelabs/istio-cloud-map/pkg/control"
-	"github.com/tetratelabs/istio-cloud-map/pkg/provider"
-	"github.com/tetratelabs/istio-cloud-map/pkg/serviceentry"
+	"github.com/tetratelabs/istio-registry-sync/pkg/cloudmap"
+	"github.com/tetratelabs/istio-registry-sync/pkg/consul"
+	"github.com/tetratelabs/istio-registry-sync/pkg/control"
+	"github.com/tetratelabs/istio-registry-sync/pkg/provider"
+	"github.com/tetratelabs/istio-registry-sync/pkg/serviceentry"
 	"github.com/tetratelabs/log"
 )
 
@@ -65,7 +65,7 @@ func serve() (serve *cobra.Command) {
 		Use:     "serve",
 		Aliases: []string{"serve"},
 		Short:   "Starts the Istio Cloud Map Operator server",
-		Example: "istio-cloud-map serve --id 123",
+		Example: "istio-registry-sync serve --id 123",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := clientcmd.BuildConfigFromFlags("", kubeConfig)
 			if err != nil {
@@ -126,7 +126,7 @@ func serve() (serve *cobra.Command) {
 	}
 
 	serve.PersistentFlags().StringVar(&id,
-		"id", "istio-cloud-map-operator", "ID of this instance; instances will only ServiceEntries marked with their own ID.")
+		"id", "istio-registry-sync-operator", "ID of this instance; instances will only ServiceEntries marked with their own ID.")
 	serve.PersistentFlags().BoolVar(&debug, "debug", true, "if true, enables more logging")
 	serve.PersistentFlags().StringVar(&kubeConfig,
 		"kube-config", "", "kubeconfig location; if empty the server will assume it's in a cluster; for local testing use ~/.kube/config")
@@ -179,7 +179,7 @@ func getWatcher(ctx context.Context) (provider.Watcher, error) {
 
 func main() {
 	root := &cobra.Command{
-		Short:   "istio-cloud-map",
+		Short:   "istio-registry-sync",
 		Example: "",
 	}
 	// TODO: add other commands for listing services under management, etc.

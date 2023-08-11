@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/consul/api"
 
-	"github.com/tetratelabs/istio-cloud-map/pkg/provider"
+	"github.com/tetratelabs/istio-registry-sync/pkg/provider"
 )
 
 var testClient *api.Client

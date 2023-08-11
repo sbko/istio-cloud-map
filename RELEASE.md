@@ -14,8 +14,8 @@ git tag -a "v0.3.1"
 git push upstsream HEAD # You must have admin permission for the repo.
 ```
 
-Github Action will detect the newly created tags and trigger the workflow. Check [Action Runs](https://github.com/tetratelabs/istio-cloud-map/actions)
+Github Action will detect the newly created tags and trigger the workflow. Check [Action Runs](https://github.com/tetratelabs/istio-registry-sync/actions)
 and watch for its completion.
 
-Once workflow completes, go to [Release](https://github.com/tetratelabs/istio-cloud-map/releases)
+Once workflow completes, go to [Release](https://github.com/tetratelabs/istio-registry-sync/releases)
 page and draft the release notes, provide Docker image links.

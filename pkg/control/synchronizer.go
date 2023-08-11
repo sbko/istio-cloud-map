@@ -9,9 +9,9 @@ import (
 	icapi "istio.io/client-go/pkg/clientset/versioned/typed/networking/v1alpha3"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/tetratelabs/istio-cloud-map/pkg/infer"
-	"github.com/tetratelabs/istio-cloud-map/pkg/provider"
-	"github.com/tetratelabs/istio-cloud-map/pkg/serviceentry"
+	"github.com/tetratelabs/istio-registry-sync/pkg/infer"
+	"github.com/tetratelabs/istio-registry-sync/pkg/provider"
+	"github.com/tetratelabs/istio-registry-sync/pkg/serviceentry"
 	"github.com/tetratelabs/log"
 )
 
