@@ -44,7 +44,6 @@ const (
 	apiType       = apiGroup + "/" + apiVersion
 	kind          = "ServiceEntry"
 	allNamespaces = ""
-	resyncPeriod  = 30
 )
 
 var (
@@ -57,6 +56,7 @@ var (
 	awsSecret       string
 	consulEndpoint  string
 	consulNamespace string
+	resyncPeriod int
 )
 
 func serve() (serve *cobra.Command) {
@@ -115,7 +115,7 @@ func serve() (serve *cobra.Command) {
 			sync := control.NewSynchronizer(owner, istio, watcher.Store(), watcher.Prefix(), write)
 			go sync.Run(ctx)
 
-			informer := icinformer.NewServiceEntryInformer(ic, allNamespaces, 5*time.Second,
+			informer := icinformer.NewServiceEntryInformer(ic, allNamespaces, time.Duration(resyncPeriod)*time.Second,
 				// taken from https://github.com/istio/istio/blob/release-1.5/pilot/pkg/bootstrap/namespacecontroller.go
 				cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc})
 			serviceentry.AttachHandler(istio, informer)
@@ -145,6 +145,7 @@ func serve() (serve *cobra.Command) {
 		"Consul's endpoint to query service catalog. This must include its scheme http// or https//. (e.g. http://localhost:8500)")
 	serve.PersistentFlags().StringVar(&consulNamespace, "consul-namespace", "",
 		"Consul's namespace to search service catalog")
+	serve.PersistentFlags().IntVar(&resyncPeriod, "resync-period", 5, "Time in seconds between resyncs")
 	return serve
 }
 
