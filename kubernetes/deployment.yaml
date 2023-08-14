@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: istio-cloud-map-operator
+  name: istio-registry-sync-operator
   labels:
-    app: istio-cloud-map
+    app: istio-registry-sync
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: istio-cloud-map
+      app: istio-registry-sync
   template:
     metadata:
       labels:
-        app: istio-cloud-map
+        app: istio-registry-sync
     spec:
-      serviceAccountName: istio-cloud-map-service-account
+      serviceAccountName: istio-registry-sync-service-account
       containers:
-      - name: istio-cloud-map-server
-        image: ghcr.io/tetratelabs/istio-cloud-map:v0.3
+      - name: istio-registry-sync-server
+        image: ghcr.io/tetratelabs/istio-registry-sync:v0.3
         imagePullPolicy: Always
         args:
         - serve
@@ -45,6 +45,6 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: istio-cloud-map-service-account
+  name: istio-registry-sync-service-account
   labels:
-    app: istio-cloud-map              
+    app: istio-registry-sync

@@ -5,35 +5,35 @@ TAG ?= v0.3
 # Make sure we pick up any local overrides.
 -include .makerc
 
-build: istio-cloud-map
-istio-cloud-map:
-	go build -o istio-cloud-map github.com/tetratelabs/istio-cloud-map/cmd/istio-cloud-map
-	chmod +x istio-cloud-map
+build: istio-registry-sync
+istio-registry-sync:
+	go build -o istio-registry-sync github.com/tetratelabs/istio-registry-sync/cmd/istio-registry-sync
+	chmod +x istio-registry-sync
 
-run: istio-cloud-map
-	./istio-cloud-map serve --kube-config ~/.kube/config
+run: istio-registry-sync
+	./istio-registry-sync serve --kube-config ~/.kube/config
 
 
-build-static: docker/istio-cloud-map-static
+build-static: docker/istio-registry-sync-static
 
-docker/istio-cloud-map-static:
+docker/istio-registry-sync-static:
 	GOOS=linux go build \
 		-a --ldflags '-extldflags "-static"' -tags netgo -installsuffix netgo \
-		-o docker/istio-cloud-map-static github.com/tetratelabs/istio-cloud-map/cmd/istio-cloud-map
-	chmod +x docker/istio-cloud-map-static
+		-o docker/istio-registry-sync-static github.com/tetratelabs/istio-registry-sync/cmd/istio-registry-sync
+	chmod +x docker/istio-registry-sync-static
 
-docker-build: docker/istio-cloud-map-static
-	docker build -t $(REGISTRY)/istio-cloud-map:$(TAG) docker/
+docker-build: docker/istio-registry-sync-static
+	docker build -t $(REGISTRY)/istio-registry-sync:$(TAG) docker/
 
 docker-push: docker-build
-	docker push $(REGISTRY)/istio-cloud-map:$(TAG)
+	docker push $(REGISTRY)/istio-registry-sync:$(TAG)
 
 docker-run: docker-build
 	# local run, mounting kube config into the container and allowing it to use a host network to access the remote cluster
 	@docker run \
-		-v ~/.kube/config:/etc/istio-cloud-map/kube-config \
+		-v ~/.kube/config:/etc/istio-registry-sync/kube-config \
 		--network host \
-		$(REGISTRY)/istio-cloud-map:$(TAG) serve --kube-config /etc/istio-cloud-map/kube-config
+		$(REGISTRY)/istio-registry-sync:$(TAG) serve --kube-config /etc/istio-registry-sync/kube-config
 
 clean:
-	rm -f istio-cloud-map
+	rm -f istio-registry-sync
