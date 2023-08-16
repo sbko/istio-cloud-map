@@ -121,6 +121,7 @@ Edit the configuration in `kubernetes/aws-config.yaml`. There are two pieces:
 | `--id` | string | ID of this instance; instances will only ServiceEntries marked with their own ID. (default "istio-registry-sync-operator") |
 | `--kube-config` | string | kubeconfig location; if empty the server will assume it's in a cluster; for local testing use ~/.kube/config |
 | `--namespace` | string | If provided, the namespace this operator publishes ServiceEntries to. If no value is provided it will be populated from the `PUBLISH_NAMESPACE` environment variable. If all are empty, the operator will publish into the namespace it is deployed in |
+| `--resync-period` | int | Time in seconds between syncing. Default is 5 seconds |
 
 ## Building
 
