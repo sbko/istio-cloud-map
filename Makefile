@@ -17,7 +17,7 @@ run: istio-registry-sync
 build-static: docker/istio-registry-sync-static
 
 docker/istio-registry-sync-static:
-	GOOS=linux go build \
+	CGO_ENABLED=0 GOOS=linux go build \
 		-a --ldflags '-extldflags "-static"' -tags netgo -installsuffix netgo \
 		-o docker/istio-registry-sync-static github.com/tetratelabs/istio-registry-sync/cmd/istio-registry-sync
 	chmod +x docker/istio-registry-sync-static
