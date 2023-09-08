@@ -33,7 +33,6 @@ jobs:
           role-to-assume: ${{ secrets.ECR_PUSH_ROLE }}
           aws-region: us-east-2
       - name: Login to Amazon ECR
-        if: github.event_name == 'push'
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
         with:
