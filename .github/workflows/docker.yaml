@@ -27,7 +27,6 @@ jobs:
       - name: Build static binary
         run: make build-static
       - name: Configure AWS credentials
-        if: github.event_name == 'push'
         uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: ${{ secrets.ECR_PUSH_ROLE }}
