@@ -56,7 +56,7 @@ var (
 	awsSecret       string
 	consulEndpoint  string
 	consulNamespace string
-	resyncPeriod int
+	resyncPeriod    int
 )
 
 func serve() (serve *cobra.Command) {
@@ -152,26 +152,27 @@ func serve() (serve *cobra.Command) {
 func getWatcher(ctx context.Context) (provider.Watcher, error) {
 	store := provider.NewStore()
 	log.Info("Initializing Watchers")
-	cmWatcher, awsErr := cloudmap.NewWatcher(ctx, store, awsRegion, awsID, awsSecret)
-	if awsErr == nil {
-		log.Infof("Cloud Map Watcher initialized in %q", awsRegion)
+	cmWatcher, err := cloudmap.NewWatcher(ctx, store, awsRegion, awsID, awsSecret)
+	if err != nil {
+		log.Errorf("error setting up aws: %v", err)
 	}
-	consulWatcher, consulErr := consul.NewWatcher(store, consulEndpoint, consulNamespace)
-	if consulErr == nil {
-		log.Infof("Consul Watcher initialized at %s", consulEndpoint)
+	consulWatcher, err := consul.NewWatcher(store, consulEndpoint, consulNamespace)
+	if err != nil {
+		log.Errorf("error setting up consul: %v", err)
+	}
+	if cmWatcher == nil && consulWatcher == nil {
+		return nil, errors.New("failed to initialize watchers")
 	}
 
 	var watcher provider.Watcher
-	if awsErr != nil && consulErr != nil {
-		log.Errorf("error setting up aws: %v", awsErr)
-		log.Errorf("error setting up consul: %v", consulErr)
-		return nil, errors.New("failed to initialize watchers")
-	} else if awsErr == nil {
+	if cmWatcher != nil {
 		// here we prioritize Cloud Map over Consul.
 		// TODO: should we support both sources simultaneously?
 		//   To do so, we need to modify synchronizer to support multiple Stores
+		log.Infof("Cloud Map Watcher initialized in %q", awsRegion)
 		watcher = cmWatcher
 	} else {
+		log.Infof("Consul Watcher initialized at %s", consulEndpoint)
 		watcher = consulWatcher
 	}
 
