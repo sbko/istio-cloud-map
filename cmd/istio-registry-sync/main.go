@@ -56,6 +56,7 @@ var (
 	awsSecret       string
 	consulEndpoint  string
 	consulNamespace string
+	consulToken     string
 	resyncPeriod    int
 )
 
@@ -145,6 +146,8 @@ func serve() (serve *cobra.Command) {
 		"Consul's endpoint to query service catalog. This must include its scheme http// or https//. (e.g. http://localhost:8500)")
 	serve.PersistentFlags().StringVar(&consulNamespace, "consul-namespace", "",
 		"Consul's namespace to search service catalog")
+	serve.PersistentFlags().StringVar(&consulToken, "consul-token", "",
+		"Consul's ACL token to access service catalog")
 	serve.PersistentFlags().IntVar(&resyncPeriod, "resync-period", 5, "Time in seconds between resyncs")
 	return serve
 }
@@ -156,7 +159,7 @@ func getWatcher(ctx context.Context) (provider.Watcher, error) {
 	if err != nil {
 		log.Errorf("error setting up aws: %v", err)
 	}
-	consulWatcher, err := consul.NewWatcher(store, consulEndpoint, consulNamespace)
+	consulWatcher, err := consul.NewWatcher(store, consulEndpoint, consulNamespace, consulToken)
 	if err != nil {
 		log.Errorf("error setting up consul: %v", err)
 	}

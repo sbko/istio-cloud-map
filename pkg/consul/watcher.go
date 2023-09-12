@@ -32,7 +32,7 @@ const (
 
 var _ provider.Watcher = &watcher{}
 
-func NewWatcher(store provider.Store, endpoint string, namespace string) (provider.Watcher, error) {
+func NewWatcher(store provider.Store, endpoint string, namespace string, token string) (provider.Watcher, error) {
 	if len(endpoint) == 0 {
 		return nil, errors.New("Consul endpoint not specified")
 	}
@@ -43,10 +43,10 @@ func NewWatcher(store provider.Store, endpoint string, namespace string) (provid
 		return nil, errors.Wrapf(err, "error parsing endpoint: %s", endpoint)
 	}
 
-	// TODO: allow users to specify TOKEN
 	config.Scheme = u.Scheme
 	config.Address = u.Host
 	config.WaitTime = defaultBlockingRequestWaitTimeDuration
+	config.Token = token
 
 	client, err := api.NewClient(config)
 	if err != nil {
