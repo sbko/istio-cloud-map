@@ -1,6 +1,6 @@
 # override to push to a different registry or tag the image differently
 REGISTRY ?= ghcr.io/tetratelabs
-TAG ?= v0.3
+TAG ?= v0.4.0
 
 # Make sure we pick up any local overrides.
 -include .makerc
@@ -17,7 +17,7 @@ run: istio-registry-sync
 build-static: docker/istio-registry-sync-static
 
 docker/istio-registry-sync-static:
-	GOOS=linux go build \
+	CGO_ENABLED=0 GOOS=linux go build \
 		-a --ldflags '-extldflags "-static"' -tags netgo -installsuffix netgo \
 		-o docker/istio-registry-sync-static github.com/tetratelabs/istio-registry-sync/cmd/istio-registry-sync
 	chmod +x docker/istio-registry-sync-static
