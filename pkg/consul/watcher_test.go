@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/consul/api"
-
 	"github.com/tetratelabs/istio-registry-sync/pkg/provider"
 )
 
@@ -60,11 +59,12 @@ func testRefreshStore(t *testing.T) {
 					{
 						ID:      "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
 						Node:    "node1",
-						Address: "192.0.2.20",
+						Address: "192.0.1.1",
 						Service: &api.AgentService{
 							Service: "service1",
 							Port:    8080,
 							ID:      "service1",
+							Address: "192.0.2.20",
 						},
 					},
 				},
@@ -77,32 +77,35 @@ func testRefreshStore(t *testing.T) {
 					{
 						ID:      "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
 						Node:    "node1",
-						Address: "192.0.2.1",
+						Address: "192.0.1.1",
 						Service: &api.AgentService{
 							Service: "service1",
 							Port:    8080,
 							ID:      "service1",
+							Address: "192.0.2.1",
 						},
 					},
 					{
 						ID:      "baaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
 						Node:    "node2",
-						Address: "192.0.2.2",
+						Address: "192.0.1.2",
 						Service: &api.AgentService{
 							Service: "service1",
 							Port:    8080,
 							ID:      "service1",
+							Address: "192.0.2.2",
 						},
 					},
 				},
 				"service2": {{
 					ID:      "caaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
 					Node:    "node3",
-					Address: "192.0.2.3",
+					Address: "192.0.1.3",
 					Service: &api.AgentService{
 						Service: "service2",
 						Port:    8080,
 						ID:      "service2",
+						Address: "192.0.2.3",
 					},
 				}},
 			},
@@ -152,7 +155,11 @@ func testRefreshStore(t *testing.T) {
 				for _, exp := range wes {
 					var found bool
 					for _, e := range actual {
-						if e.Address == exp.Address {
+						expectedAddress := exp.Address
+						if exp.Service.Address != "" {
+							expectedAddress = exp.Service.Address
+						}
+						if e.Address == expectedAddress {
 							found = true
 							break
 						}
@@ -319,9 +326,9 @@ func TestCatalogServiceToWorkloadEntry(t *testing.T) {
 	}
 
 	// empty port
-	in := &api.CatalogService{Address: "192.0.2.4"}
+	in := &api.CatalogService{ServiceAddress: "192.0.2.4"}
 	res = catalogServiceToWorkloadEntry(in)
-	if res.Address != in.Address {
+	if res.Address != in.ServiceAddress {
 		t.Errorf("address must be %s but got %s", in.Address, res.Address)
 	}
 	if res.Ports["http"] != 80 {
@@ -332,9 +339,9 @@ func TestCatalogServiceToWorkloadEntry(t *testing.T) {
 	}
 
 	// address and ports are provided
-	in = &api.CatalogService{Address: "192.0.2.10", ServicePort: 8080}
+	in = &api.CatalogService{ServiceAddress: "192.0.2.10", ServicePort: 8080}
 	res = catalogServiceToWorkloadEntry(in)
-	if res.Address != in.Address {
+	if res.Address != in.ServiceAddress {
 		t.Errorf("address must be %s but got %s", in.Address, res.Address)
 	}
 	if res.Ports["tcp"] != uint32(in.ServicePort) {
