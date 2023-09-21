@@ -45,6 +45,10 @@ func NewWatcher(ctx context.Context, store provider.Store, region, id, secret st
 		return nil, errors.Wrap(err, "error loading AWS config")
 	}
 	sdclient := servicediscovery.NewFromConfig(cfg)
+	_, err = sdclient.ListNamespaces(ctx, &servicediscovery.ListNamespacesInput{})
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating Cloud Map watcher")
+	}
 	return &watcher{cloudmap: sdclient, store: store, interval: time.Second * 5}, nil
 }
 
