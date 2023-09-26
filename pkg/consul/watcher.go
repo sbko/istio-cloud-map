@@ -156,6 +156,10 @@ func (w *watcher) describeService(name string) ([]*api.CatalogService, error) {
 // catalogServiceToWorkloadEntry converts catalog service to workload entry
 func catalogServiceToWorkloadEntry(c *api.CatalogService) *v1alpha3.WorkloadEntry {
 	address := c.Address
+	if c.ServiceAddress != "" {
+		// use Service Address if it exists
+		address = c.ServiceAddress
+	}
 	if address == "" {
 		log.Infof("instance %s of %s.%v is of a type that is not currently supported",
 			c.ServiceID, c.ServiceName, c.Namespace)
