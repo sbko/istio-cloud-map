@@ -1,6 +1,6 @@
 # override to push to a different registry or tag the image differently
 REGISTRY ?= docker.cloudsmith.io/tetrate/tis-containers
-TAG ?= v0.5.0
+TAG ?= v0.5.1
 
 # Make sure we pick up any local overrides.
 -include .makerc

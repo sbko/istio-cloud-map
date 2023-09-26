@@ -17,7 +17,7 @@ spec:
       serviceAccountName: istio-registry-sync-service-account
       containers:
       - name: istio-registry-sync-server
-        image: docker.cloudsmith.io/tetrate/tis-containers:v0.5.0
+        image: docker.cloudsmith.io/tetrate/tis-containers:v0.5.1
         imagePullPolicy: Always
         args:
         - serve
